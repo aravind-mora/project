@@ -6,19 +6,27 @@ import { transporter } from "../config/mail.js";
 const otpStore = new Map();
 
 export const sendOTP = async (req, res) => {
-    const { email } = req.body;
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    otpStore.set(email, { otp, expires: Date.now() + 5 * 60 * 1000 });
+    try {
+        const { email } = req.body;
 
-    await transporter.sendMail({
-        from: `"SocioSphere" <${process.env.OTP_EMAIL}>`,
-        to: email,
-        subject: "Your OTP",
-        html: `<h2>Your OTP: ${otp}</h2>`
-    });
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        otpStore.set(email, { otp, expires: Date.now() + 5 * 60 * 1000 });
 
-    res.json({ message: "OTP sent" });
+        await transporter.sendMail({
+            from: `"SocioSphere" <${process.env.OTP_EMAIL}>`,
+            to: email,
+            subject: "Your OTP Code",
+            html: `<h2>Your OTP is: ${otp}</h2>`
+        });
+
+
+        res.json({ message: "OTP sent" });
+    } catch (err) {
+        console.error("OTP ERROR:", err);   // 🔥 THIS IS KEY
+        res.status(500).json({ message: "Failed to send OTP" });
+    }
 };
+
 
 export const signup = async (req, res) => {
     const { fullName, email, mobile, password, otp, role } = req.body;
